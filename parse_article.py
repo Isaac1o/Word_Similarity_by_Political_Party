@@ -88,6 +88,8 @@ def get_fox_article_links(num_articles: int, topic: str) -> tuple:
 
 
 fox_articles = get_fox_article_links(100, 'politics')
+for link in fox_articles:
+    print(link)
 
 
 
