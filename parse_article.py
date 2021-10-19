@@ -26,6 +26,8 @@ def get_cnn_article_links(num_articles: int, topic: str) -> tuple:
                 article_links.append(elem.get_attribute('href'))
                 current_link = elem.get_attribute("href")
 
+    browser.close()
+
     return tuple(article_links)
 
 
@@ -84,12 +86,65 @@ def get_fox_article_links(num_articles: int, topic: str) -> tuple:
             popup_button = browser.find_element_by_class_name('pf-widget-close')
             popup_button.click()
 
+    browser.close()
+
     return tuple(article_links)
 
 
-fox_articles = get_fox_article_links(100, 'politics')
-for link in fox_articles:
-    print(link)
+def get_wp_links(num_articles, topic) -> list:
+    URL = f'https://www.washingtonpost.com/{topic}'
+    browser = webdriver.Chrome()
+    try:
+        browser.get(URL)
+        time.sleep(3)
+    except Exception as e:
+        print(e)
+
+    main_container = browser.find_element_by_xpath('//*[contains(@class, "main-content-chain sectionx")]')
+    browser.execute_script("window.scrollTo(0, 10000);")
+    load_more_button = browser.find_element_by_class_name('pb-loadmore-div-ans.button.pb-loadmore.clear')
+
+    links = set()
+    i = 0
+    while len(links) < num_articles:
+        # articles = main_container.find_elements_by_tag_name()
+        articles = main_container.find_elements_by_xpath('//a[@data-pb-local-content-field="web_headline"]')
+        assert len(articles) > 0, 'No articles found'
+        for article in articles[i:]:
+            # if 'web_headline' in articles.get_attribute('data-pb-local-content-field'):
+            link = article.get_attribute('href')
+            links.add(link)
+            if len(links) == num_articles:
+                break
+            i += 1
+
+        try:
+            load_more_button.click()
+            time.sleep(1)
+        except Exception as e:
+            print(e)
+
+    browser.close()
+
+    return tuple(links)
+
+
+
+
+
+
+
+
+
+
+
+# fox_articles = get_fox_article_links(100, 'politics')
+# for link in fox_articles:
+#     print(link)
+
+# cnn_links = get_cnn_article_links(100, 'politics')
+# for link in cnn_links:
+#     print(link)
 
 
 
