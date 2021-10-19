@@ -6,29 +6,52 @@ from selenium.webdriver.common.keys import Keys
 def get_cnn_article_links(num_articles: int, topic: str) -> tuple:
     browser = webdriver.Chrome()  # initialize selenium Chrome browser object
 
-    article_links = []
-    for starting_index in range(0, num_articles, 50):
-        # CNN only allows 50 articles to display on a page, so I have to parse 50 articles
-        # at a time.
-        base_url = f'https://www.cnn.com/search?q={topic}&size=50&from={starting_index}&page='
-        browser.get(base_url)  # opens url on Chrome browser
-        time.sleep(2)  # give browser time to load
-
-        # Finds the container that contains every news article.
-        main_news_container = browser.find_element_by_class_name('cnn-search__results-list')
-
-        # In main container get 'a'
-        text_sections = main_news_container.find_elements_by_xpath("//a[@href]")
-
-        current_link = None
-        for elem in text_sections:
-            if 'index.html' in elem.get_attribute('href') and elem.get_attribute('href') != current_link:
-                article_links.append(elem.get_attribute('href'))
-                current_link = elem.get_attribute("href")
+    article_links = set()
+    i = 0
+    while len(article_links) < num_articles:
+        URL = f'https://www.cnn.com/search?q={topic}&size=50&from={i}&page='
+        browser.get(URL)  # opens url on Chrome browser
+        articles = browser.find_elements_by_class_name('cnn-search__result-headline')
+        for article in articles:
+            link = article.find_element_by_tag_name('a').get_attribute('href')
+            if 'index.html' in link:
+                article_links.add(link)
+                if len(article_links) == num_articles:
+                    break
+            i += 1
 
     browser.close()
 
     return tuple(article_links)
+
+
+
+
+
+
+    #
+    #     for starting_index in range(0, num_articles, 50):
+    #         # CNN only allows 50 articles to display on a page, so I have to parse 50 articles
+    #         # at a time.
+    #         base_url = f'https://www.cnn.com/search?q={topic}&size=50&from={starting_index}&page='
+    #         browser.get(base_url)  # opens url on Chrome browser
+    #         time.sleep(2)  # give browser time to load
+    #
+    #         # Finds the container that contains every news article.
+    #         main_news_container = browser.find_element_by_class_name('cnn-search__results-list')
+    #
+    #         # In main container get 'a'
+    #         text_sections = main_news_container.find_elements_by_xpath("//a[@href]")
+    #
+    #         current_link = None
+    #         for elem in text_sections:
+    #             if 'index.html' in elem.get_attribute('href') and elem.get_attribute('href') != current_link:
+    #                 article_links.append(elem.get_attribute('href'))
+    #                 current_link = elem.get_attribute("href")
+    #
+    # browser.close()
+    #
+    # return tuple(article_links)
 
 
 def get_fox_article_links(num_articles: int, topic: str) -> tuple:
@@ -129,15 +152,55 @@ def get_wp_links(num_articles, topic) -> list:
     return tuple(links)
 
 
+def get_the_blaze_links(num_articles, topic):
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--disable-notifications")
+    URL = f'https://www.theblaze.com/search/?q={topic}'
+    browser = webdriver.Chrome(options=chrome_options)
+    browser.get(URL)
+    time.sleep(2)
+
+    links = set()
+    i = 0
+    while len(links) < num_articles:
+        headlines = browser.find_elements_by_class_name('widget__headline.h1')
+        for headline in headlines[i:]:
+            try:
+                link = headline.find_element_by_tag_name('a').get_attribute('href')
+                links.add(link)
+            except Exception as e:
+                print(e)
+            if len(links) == num_articles:
+                break
+            i += 1
+        browser.execute_script("window.scrollTo(0, 10000);")
+        load_button = browser.find_element_by_class_name('btn.button-load-more.next-page-wrapper.action-btn')
+        try:
+            load_button.click()
+            time.sleep(.5)
+        except Exception as e:
+            print(e)
+            try:
+                popup_exit = browser.find_element_by_id('no-thanks')
+                popup_exit.click()
+            except Exception as e:
+                print(e)
+                try:
+                    close_overlay = browser.find_element_by_class_name('overlay-close-button')
+                    close_overlay.click()
+                except Exception as e:
+                    print(e)
+                    browser.find_element_by_class_name('overlay-creative-message').click()
+                continue
+
+    return tuple(links)
+
+links = get_cnn_article_links(100, 'politics')
+for link in links: print(link)
 
 
 
-
-
-
-
-
-
+#push-overlay > div > div.overlay-close-button
 # fox_articles = get_fox_article_links(100, 'politics')
 # for link in fox_articles:
 #     print(link)
