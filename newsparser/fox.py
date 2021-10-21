@@ -73,8 +73,8 @@ def get_fox_articles(num_articles: int, topic: str, dir_name: str):
 def get_fox_content(link):
     r = requests.get(link)
     soup = BeautifulSoup(r.text, 'html.parser')
-    header = soup.find(class_='headline').text
-    sub_header = soup.find(class_='sub-headline speakable').text
+    header = soup.find(class_='headline').text.strip()
+    sub_header = soup.find(class_='sub-headline speakable').text.strip()
     article_body = soup.find(class_='article-body')
     paragraph_containers = article_body.find_all('p')
     paragraphs = [p.text for p in paragraph_containers]

@@ -42,7 +42,7 @@ def get_cnn_articles(num_articles: int, topic: str, dir_name: str):
 def get_cnn_content(link):
     r = requests.get(link)
     soup = BeautifulSoup(r.text, 'html.parser')
-    header = soup.find(class_='pg-headline').text
+    header = soup.find(class_='pg-headline').text.strip()
     paragraph_containers = soup.find_all(class_='zn-body__paragraph')
     paragraphs = [para.text for para in paragraph_containers]
     paragraphs = ''.join(paragraphs).strip(' (CNN)')
