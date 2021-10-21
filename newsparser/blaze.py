@@ -71,6 +71,3 @@ def get_blaze_content(link):
     content = f'{header}\n{body}'
 
     return content
-
-
-# get_blaze_articles(10, 'politics', '/tmp/blaze')
