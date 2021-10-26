@@ -16,6 +16,9 @@ def main():
     elif news_outlet == 'blaze':
         directory = f'{directory_to_save}/blaze'
         news.get_blaze_articles(num_articles, topic, directory)
+    elif news_outlet == 'vox':
+        directory = f'{directory_to_save}/vox'
+        news.get_blaze_articles(num_articles, topic, directory)
 
 
 if __name__ == '__main__':
