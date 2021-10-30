@@ -7,8 +7,9 @@ import requests
 
 
 def get_vox_articles(num_articles: int, topic: str, dir_name: str):
-    if not os.path.isdir(dir_name):
-        os.mkdir(dir_name)
+    full_dir_path = f'{dir_name}/{topic}'
+    if not os.path.isdir(full_dir_path):
+        os.mkdir(full_dir_path)
 
     url = f'https://www.vox.com/search?q={topic}&type=Article'
     browser = webdriver.Chrome()  # initialize selenium Chrome browser object
@@ -22,7 +23,7 @@ def get_vox_articles(num_articles: int, topic: str, dir_name: str):
         for article in article_containers:
             link = article.find_element_by_tag_name('a').get_attribute('href')
             try:
-                with open(f'{dir_name}/article{n}.txt', 'w') as f:
+                with open(f'{full_dir_path}/article{n}.txt', 'w') as f:
                     f.write(get_vox_content(link))
                 n += 1
                 if n == num_articles:
