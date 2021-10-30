@@ -7,6 +7,9 @@ import requests
 
 
 def get_blaze_articles(num_articles, topic, dir_name):
+    if not os.path.isdir(dir_name):
+        os.mkdir(dir_name)
+
     full_dir_path = f'{dir_name}/{topic}'
     if not os.path.isdir(full_dir_path):
         os.mkdir(full_dir_path)

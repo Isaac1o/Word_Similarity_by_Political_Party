@@ -22,6 +22,9 @@ def main():
     elif news_outlet == 'ny_post':
         directory = f'{directory_to_save}/ny_post'
         news.get_ny_post_articles(num_articles, topic, directory)
+    elif news_outlet == 'motherjones':
+        directory = f'{directory_to_save}/motherjones'
+        news.get_ny_post_articles(num_articles, topic, directory)
 
 
 if __name__ == '__main__':
