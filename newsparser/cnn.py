@@ -49,7 +49,7 @@ def get_cnn_content(link):
     header = soup.find(class_='pg-headline').text.strip()
     paragraph_containers = soup.find_all(class_='zn-body__paragraph')
     paragraphs = [para.text for para in paragraph_containers]
-    paragraphs = ' '.join(paragraphs).strip(' (CNN)')
+    paragraphs = ' '.join(paragraphs).lstrip(' (CNN)')
     content = f'{header}\n{paragraphs}'
 
     return content
