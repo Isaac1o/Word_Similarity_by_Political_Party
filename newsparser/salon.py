@@ -17,10 +17,10 @@ def get_salon_articles(num_articles, topic, dir_name):
     # Start browser
     browser = webdriver.Chrome()
     page_num = 1
-    url = f'https://www.salon.com/search/{topic}?pagenum={page_num}'
 
     n = 0
     while n < num_articles:
+        url = f'https://www.salon.com/search/{topic}?pagenum={page_num}'
         browser.get(url)
         time.sleep(1)
         try:

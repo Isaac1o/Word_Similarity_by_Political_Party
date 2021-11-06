@@ -16,7 +16,26 @@ def get_fox_articles(num_articles: int, topic: str, dir_name: str):
 
     browser = webdriver.Chrome()  # initialize selenium Chrome browser object
 
-    base_url = f'https://www.foxnews.com/search-results/search?q={topic}'
+    valid_topics = [
+        'us',
+        'politics',
+        'media',
+        'opinion',
+        'business',
+        'entertainment',
+        'sports',
+        'lifestyle',
+        'weather',
+        'tv',
+        'fox-nation',
+        'listen'
+    ]
+    topic = topic.lower()
+    if topic not in valid_topics:
+        print('Not a valid topic')
+        return None
+
+    base_url = f'https://www.foxnews.com/{topic}'
     browser.get(base_url)  # opens url on Chrome browser
     time.sleep(2)  # give browser time to load
 
@@ -30,24 +49,24 @@ def get_fox_articles(num_articles: int, topic: str, dir_name: str):
         print(e)
 
     # Filter search to only contain articles
-    browser.find_element_by_class_name('select').click()  # click drop down
-    browser.find_element_by_xpath('//input[@value="Article"]').click()  # click article check box
-    browser.find_element_by_class_name('search-form').find_element_by_class_name('button').click()  # click search
-    time.sleep(1)
+    # browser.find_element_by_class_name('select').click()  # click drop down
+    # browser.find_element_by_xpath('//input[@value="Article"]').click()  # click article check box
+    # browser.find_element_by_class_name('search-form').find_element_by_class_name('button').click()  # click search
+    # time.sleep(1)
 
     # Finds the container that contains every news article.
-    article_section = browser.find_element_by_class_name('collection.collection-search.active')
+    # article_section = browser.find_element_by_class_name('collection.collection-search.active')
     # article_section = main_news_container.find_element_by_class_name('collection.collection-article-list.has-load-more')
 
     # Fox has a load more button. Each time you click the button 10 additional articles are displayed.
-    load_more_button = article_section.find_element_by_class_name('button.load-more')
+    # load_more_button = article_section.find_element_by_class_name('button.load-more')
 
     n = 0
-    start_index = 0
-    while n < num_articles:
-        articles = article_section.find_elements_by_class_name('article')
-        for article in articles[start_index:]:
-            link = article.find_element_by_tag_name('a').get_attribute('href')
+    first_articles_container = browser.find_element_by_class_name('collection.collection-article-list')
+    first_articles = first_articles_container.find_elements_by_class_name('title')
+    for article in first_articles:
+        link = article.find_element_by_tag_name('a').get_attribute('href')
+        if 'video.foxnews' not in link:
             try:
                 content = get_fox_content(link)
                 with open(f'{full_dir_path}/article{n}.txt', 'w') as f:
@@ -59,11 +78,33 @@ def get_fox_articles(num_articles: int, topic: str, dir_name: str):
                 print(e)
                 print(f'Fox Error: Unable to read or write {link}')
                 print()
+
+    addition_articles_container = browser.find_element_by_class_name('collection.collection-article-list.has-load-more')
+    show_more_button = browser.find_element_by_class_name('button.load-more.js-load-more')
+    start_index = 0
+    while n < num_articles:
+        articles = addition_articles_container.find_elements_by_tag_name('article')
+        for article in articles[start_index:]:
+            link = article.find_element_by_tag_name('a').get_attribute('href')
+            if 'video.foxnews' not in link:
+                try:
+                    content = get_fox_content(link)
+                    with open(f'{full_dir_path}/article{n}.txt', 'w') as f:
+                        f.write(content)
+                    n += 1
+                    if n == num_articles:
+                        break
+                except Exception as e:
+                    print(e)
+                    print(f'Fox Error: Unable to read or write {link}')
+                    print()
             start_index += 1
 
+        browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         try:
-            load_more_button.click()
+            show_more_button.click()
             time.sleep(.5)  # give browser time to load additional articles
+            browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         except Exception as e:
             # Popup widget might appear.
             print(e)
@@ -79,18 +120,22 @@ def get_fox_content(link):
     r = requests.get(link)
     soup = BeautifulSoup(r.text, 'html.parser')
     header = soup.find(class_='headline').text.strip()
-    sub_header = soup.find(class_='sub-headline speakable').text.strip()
+    sub_header_container = soup.find(class_='sub-headline speakable')
+    sub_header = ''
+    if sub_header_container:
+        sub_header = sub_header_container.text.strip()
     article_body = soup.find(class_='article-body')
     paragraph_containers = article_body.find_all('p')
     paragraphs = [p.text for p in paragraph_containers]
     body = ' '.join(paragraphs).strip()
-    content = f'{header}\n{sub_header}\n{body}'
+    content = f'{header} {sub_header} {body}'
     
     return content
 
 
 
-# get_fox_articles(10, 'politics', '/tmp/fox')
+get_fox_articles(200, 'politics', '/tmp/fox')
+# print(get_fox_content('https://www.foxnews.com/opinion/joe-concha-media-questioning-politics-mask-guidelines'))
 
 
 

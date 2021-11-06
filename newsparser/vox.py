@@ -48,11 +48,14 @@ def get_vox_content(link):
     r = requests.get(link)
     soup = BeautifulSoup(r.text, 'html.parser')
     header = soup.find(class_='c-page-title').text
-    sub_header = soup.find(class_='c-entry-summary p-dek').text
+    sub_header_container = soup.find(class_='c-entry-summary p-dek')
+    sub_header = ''
+    if sub_header_container:
+        sub_header = sub_header_container.text
     content_container = soup.find(class_='c-entry-content')
     paragraph_containers = content_container.find_all('p')
     paragraphs = [p.text.strip() for p in paragraph_containers if len(p.text.strip()) != 0]
     paragraphs = ' '.join(paragraphs)
-    content = f'{header}\n{sub_header}\n{paragraphs}'
+    content = f'{header} {sub_header} {paragraphs}'
 
     return content

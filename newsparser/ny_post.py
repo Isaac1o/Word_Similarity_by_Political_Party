@@ -7,6 +7,23 @@ import requests
 
 
 def get_ny_post_articles(num_articles, topic, dir_name):
+    valid_topics = [
+        'news',
+        'sports',
+        'opinion',
+        'fashion',
+        'living',
+        'tech',
+        'video',
+        'business',
+        'entertainment',
+        'media'
+    ]
+    topic = topic.lower()
+    if topic not in valid_topics:
+        print('Not a valid topic')
+        return None
+
     if not os.path.isdir(dir_name):
         os.mkdir(dir_name)
 
@@ -16,14 +33,24 @@ def get_ny_post_articles(num_articles, topic, dir_name):
 
     # Start browser
     browser = webdriver.Chrome()
-    url = f'https://nypost.com/search/{topic}/'
+    url = f'https://nypost.com/{topic}/'
     browser.get(url)
     time.sleep(2)
 
+    # Close prompt
+    try:
+        print('Trying to close prompt')
+        browser.find_element_by_class_name('pushly_popover-buttons-dismiss.pushly-prompt-buttons-dismiss').click()
+    except Exception as e:
+        print(e)
+        print('No prompt to close... Continuing')
+
     n = 0
+    i = 0
     while n < num_articles:
-        article_containers = browser.find_elements_by_class_name('story__headline.headline.headline--archive')
-        for article_container in article_containers:
+        stories_container = browser.find_element_by_class_name('the-latest__stories')
+        article_containers = stories_container.find_elements_by_class_name('story__headline.headline.headline--archive')
+        for article_container in article_containers[i:]:
             # Go through all articles on page and save their article contents
             link = article_container.find_element_by_tag_name('a').get_attribute('href')
             try:
@@ -38,13 +65,23 @@ def get_ny_post_articles(num_articles, topic, dir_name):
                 print(f'Unable to write or save {link}')
                 print()
 
-        # Click button for next page
+            i += 1
+
+        browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        see_more_button = browser.find_element_by_class_name('button.button--solid.see-more')
         try:
-            next_page_button = browser.find_element_by_class_name('button.button--solid')
-            next_page_button.click()
+            see_more_button.click()
+            time.sleep(1)
         except Exception as e:
             print(e)
-            browser.find_element_by_class_name('pushly_popover-buttons-dismiss.pushly-prompt-buttons-dismiss').click()
+            print('Unable to click button. There may be an add in the way.')
+            try:
+                browser.find_element_by_class_name('bx-close-xsvg').click()
+            except Exception as e:
+                print(e)
+                print('Unable to click button. Closing browser.')
+                browser.close()
+                return
 
     browser.close()
     time.sleep(2)
@@ -63,6 +100,8 @@ def get_ny_post_content(link):
         if len(paragraph_text) != 0:
             body += f'{paragraph_text} '
 
-    content = f'{header}\n{body}'
+    content = f'{header} {body}'
 
     return content
+
+get_ny_post_articles(200, 'news', '/tmp/nypost')

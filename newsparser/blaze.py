@@ -40,7 +40,7 @@ def get_blaze_articles(num_articles, topic, dir_name):
                 print()
             i += 1
 
-        browser.execute_script("window.scrollTo(0, 10000);")
+        browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         load_button = browser.find_element_by_class_name('btn.button-load-more.next-page-wrapper.action-btn')
 
         try:
@@ -73,6 +73,6 @@ def get_blaze_content(link):
     paragraph_tags = paragraph_container.find_all('p', class_=None)
     paragraphs = [p.text.strip() for p in paragraph_tags if len(p.text) != 0]
     body = ' '.join(paragraphs).strip()
-    content = f'{header}\n{body}'
+    content = f'{header} {body}'
 
     return content
