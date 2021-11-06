@@ -62,6 +62,7 @@ def get_blaze_articles(num_articles, topic, dir_name):
                 continue
 
     browser.close()
+    time.sleep(2)
 
 
 def get_blaze_content(link):

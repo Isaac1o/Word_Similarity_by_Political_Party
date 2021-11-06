@@ -41,6 +41,7 @@ def get_vox_articles(num_articles: int, topic: str, dir_name: str):
         time.sleep(.5)
 
     browser.close()
+    time.sleep(2)
 
 
 def get_vox_content(link):

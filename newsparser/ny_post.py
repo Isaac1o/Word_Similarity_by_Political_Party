@@ -39,10 +39,15 @@ def get_ny_post_articles(num_articles, topic, dir_name):
                 print()
 
         # Click button for next page
-        next_page_button = browser.find_element_by_class_name('button.button--solid')
-        next_page_button.click()
+        try:
+            next_page_button = browser.find_element_by_class_name('button.button--solid')
+            next_page_button.click()
+        except Exception as e:
+            print(e)
+            browser.find_element_by_class_name('pushly_popover-buttons-dismiss.pushly-prompt-buttons-dismiss').click()
 
     browser.close()
+    time.sleep(2)
 
 
 def get_ny_post_content(link):

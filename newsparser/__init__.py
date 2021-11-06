@@ -4,3 +4,4 @@ from .blaze import *
 from .vox import *
 from .ny_post import *
 from.motherjones import *
+from .salon import *

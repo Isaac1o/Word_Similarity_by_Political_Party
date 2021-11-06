@@ -41,6 +41,7 @@ def get_cnn_articles(num_articles: int, topic: str, dir_name: str):
             starting_article_num += 1
 
     browser.close()
+    time.sleep(2)
 
 
 def get_cnn_content(link):

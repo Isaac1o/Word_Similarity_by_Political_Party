@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import requests
 
 
-def get_mother_jones_articles(num_articles, topic, dir_name):
+def get_salon_articles(num_articles, topic, dir_name):
     if not os.path.isdir(dir_name):
         os.mkdir(dir_name)
 
@@ -16,16 +16,23 @@ def get_mother_jones_articles(num_articles, topic, dir_name):
 
     # Start browser
     browser = webdriver.Chrome()
-    url = f'https://www.motherjones.com/?s={topic}'
-    browser.get(url)
+    page_num = 1
+    url = f'https://www.salon.com/search/{topic}?pagenum={page_num}'
 
     n = 0
     while n < num_articles:
-        link_containers = browser.find_elements_by_class_name('hed')
+        browser.get(url)
+        time.sleep(1)
+        try:
+            link_containers = browser.find_elements_by_class_name('search-title')
+        except Exception as e:
+            print(e)
+            print('No results on this page')
+            break
         for link_container in link_containers:
             link = link_container.get_attribute('href')
             try:
-                content = get_mother_jones_content(link)
+                content = get_salon_content(link)
                 with open(f'{full_dir_path}/article{n}.txt', 'w') as f:
                     f.write(content)
                 n += 1
@@ -33,29 +40,28 @@ def get_mother_jones_articles(num_articles, topic, dir_name):
                     break
             except Exception as e:
                 print(e)
-                print(f'Unable to read or write {link}')
+                print(f'Unable to write or read {link}')
                 print()
 
-        next_button = browser.find_element_by_class_name('pager_next')
-        next_button.click()
+        page_num += 1
 
     browser.close()
     time.sleep(2)
 
 
-def get_mother_jones_content(link):
+def get_salon_content(link):
     r = requests.get(link)
     soup = BeautifulSoup(r.text, 'html.parser')
 
-    header = soup.find(class_='entry-title').text.strip()
-    body_container = soup.find(class_='entry-content')
-    paragraph_containers = body_container.find_all('p', class_=None)
+    header = soup.find(class_='article_badge_wrapper').text.strip()
+    article_container = soup.find(class_='article-content')
+    paragraph_containers = soup.find_all('p')
     body = ''
     for paragraph_container in paragraph_containers:
         paragraph = paragraph_container.text.strip()
         if len(paragraph) != 0:
-            body += f'{paragraph} '
+            body += paragraph + ' '
 
-    content = f'{header}\n{body}'
+    content = header + ' ' + body.strip()
 
     return content

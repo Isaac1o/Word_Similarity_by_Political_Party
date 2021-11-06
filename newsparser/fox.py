@@ -72,6 +72,7 @@ def get_fox_articles(num_articles: int, topic: str, dir_name: str):
             popup_button.click()
 
     browser.close()
+    time.sleep(2)
 
 
 def get_fox_content(link):

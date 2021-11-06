@@ -1,30 +1,80 @@
 import sys
 import newsparser as news
+import os
 
 
 def main():
-    news_outlet = sys.argv[1].lower()
-    topic = sys.argv[2].lower()
-    num_articles = int(sys.argv[3])
-    directory_to_save = sys.argv[4]
-    if news_outlet == 'cnn':
-        directory = f'{directory_to_save}/cnn'
-        news.get_cnn_articles(num_articles, topic, directory)
-    elif news_outlet == 'fox':
-        directory = f'{directory_to_save}/cnn'
-        news.get_fox_articles(num_articles, topic, directory)
-    elif news_outlet == 'blaze':
-        directory = f'{directory_to_save}/blaze'
-        news.get_blaze_articles(num_articles, topic, directory)
-    elif news_outlet == 'vox':
-        directory = f'{directory_to_save}/vox'
-        news.get_blaze_articles(num_articles, topic, directory)
-    elif news_outlet == 'ny_post':
-        directory = f'{directory_to_save}/ny_post'
-        news.get_ny_post_articles(num_articles, topic, directory)
-    elif news_outlet == 'motherjones':
-        directory = f'{directory_to_save}/motherjones'
-        news.get_ny_post_articles(num_articles, topic, directory)
+    news_outlets = ['fox', 'salon', 'blaze', 'cnn', 'vox', 'ny_post']
+    topics = ['politics', 'abortion', 'pandemic']
+    num_articles = 3000
+    directory_to_save = '/Users/Isaacbolo/DataspellProjects/word_analysis_project/data'
+
+    directory = f'{directory_to_save}/liberal/cnn'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    for topic in topics:
+        try:
+            news.get_cnn_articles(num_articles, topic, directory)
+        except Exception as e:
+            print(e)
+            print(f'Unable to parse CNN {topic}')
+            print()
+
+    directory = f'{directory_to_save}/conservative/fox'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    for topic in topics:
+        try:
+            news.get_fox_articles(num_articles, topic, directory)
+        except Exception as e:
+            print(e)
+            print(f'Unable to parse Fox {topic}')
+            print()
+
+    directory = f'{directory_to_save}/conservative/blaze'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    for topic in topics:
+        try:
+            news.get_blaze_articles(num_articles, topic, directory)
+        except Exception as e:
+            print(e)
+            print(f'Unable to parse Blaze {topic}')
+            print()
+
+    directory = f'{directory_to_save}/liberal/vox'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    for topic in topics:
+        try:
+            news.get_vox_articles(num_articles, topic, directory)
+        except Exception as e:
+            print(e)
+            print(f'Unable to parse Vox {topic}')
+            print()
+
+    directory = f'{directory_to_save}/conservative/ny_post'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    for topic in topics:
+        try:
+            news.get_ny_post_articles(num_articles, topic, directory)
+        except Exception as e:
+            print(e)
+            print(f'Unable to parse NYPost {topic}')
+            print()
+
+    directory = f'{directory_to_save}/liberal/salon'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    for topic in topics:
+        try:
+            news.get_salon_articles(num_articles, topic, directory)
+        except Exception as e:
+            print(e)
+            print(f'Unable to parse Salon {topic}')
+            print()
+
 
 
 if __name__ == '__main__':
