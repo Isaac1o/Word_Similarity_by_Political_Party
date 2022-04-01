@@ -1,6 +1,11 @@
 import time
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions
 import os
 from bs4 import BeautifulSoup
 import requests
@@ -8,13 +13,13 @@ import requests
 
 def get_fox_articles(num_articles: int, topic: str, dir_name: str):
     if not os.path.isdir(dir_name):
-        os.mkdir(dir_name)
+        os.makedirs(dir_name)
 
     full_dir_path = f'{dir_name}/{topic}'
     if not os.path.isdir(full_dir_path):
-        os.mkdir(full_dir_path)
+        os.makedirs(full_dir_path)
 
-    browser = webdriver.Chrome()  # initialize selenium Chrome browser object
+    browser = webdriver.Chrome('/Users/Isaacbolo/chromedriver/chromedriver 3')  # initialize selenium Chrome browser object
 
     valid_topics = [
         'us',
@@ -62,8 +67,9 @@ def get_fox_articles(num_articles: int, topic: str, dir_name: str):
     # load_more_button = article_section.find_element_by_class_name('button.load-more')
 
     n = 0
-    first_articles_container = browser.find_element_by_class_name('collection.collection-article-list')
-    first_articles = first_articles_container.find_elements_by_class_name('title')
+    # first_articles_container = browser.find_element_by_class_name('collection.collection-article-list')
+    first_articles_container = browser.find_element(by=By.CLASS_NAME, value='collection.collection-article-list')
+    first_articles = first_articles_container.find_elements(by=By.CLASS_NAME, value='title')
     for article in first_articles:
         link = article.find_element_by_tag_name('a').get_attribute('href')
         if 'video.foxnews' not in link:
@@ -79,13 +85,26 @@ def get_fox_articles(num_articles: int, topic: str, dir_name: str):
                 print(f'Fox Error: Unable to read or write {link}')
                 print()
 
-    addition_articles_container = browser.find_element_by_class_name('collection.collection-article-list.has-load-more')
-    show_more_button = browser.find_element_by_class_name('button.load-more.js-load-more')
+    ignored_exceptions=(NoSuchElementException,StaleElementReferenceException,)
+    addition_articles_container = browser.find_element(by=By.CLASS_NAME, value='collection.collection-article-list.has-load-more')
+    show_more_button = browser.find_element(by=By.CLASS_NAME, value='button.load-more.js-load-more')
     start_index = 0
     while n < num_articles:
-        articles = addition_articles_container.find_elements_by_tag_name('article')
+        try:
+            popup_button = browser.find_element(by=By.CLASS_NAME,value='pf-widget-close')
+            popup_button.click()
+            time.sleep(.5)
+            print(f'Popup successfully closed on n = {n}')
+        except Exception as e:
+            pass
+        articles = browser.find_elements(by=By.CLASS_NAME,value='title')
         for article in articles[start_index:]:
-            link = article.find_element_by_tag_name('a').get_attribute('href')
+            try:
+                link = article.find_element_by_tag_name('a').get_attribute('href')
+            except Exception as e:
+                print(f'link {n}: No link')
+                start_index += 1
+                continue
             if 'video.foxnews' not in link:
                 try:
                     content = get_fox_content(link)
@@ -100,17 +119,22 @@ def get_fox_articles(num_articles: int, topic: str, dir_name: str):
                     print()
             start_index += 1
 
-        browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        # browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         try:
             show_more_button.click()
-            time.sleep(.5)  # give browser time to load additional articles
+            time.sleep(2)  # give browser time to load additional articles
             browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         except Exception as e:
             # Popup widget might appear.
             print(e)
             print('Popup window displayed, trying to close...')
-            popup_button = browser.find_element_by_class_name('pf-widget-close')
-            popup_button.click()
+            try:
+                popup_button = browser.find_element(by=By.CLASS_NAME, value='pf-widget-close')
+                popup_button.click()
+                time.sleep(2)
+            except Exception as e:
+                print(e)
+                break
 
     browser.close()
     time.sleep(2)
@@ -133,9 +157,9 @@ def get_fox_content(link):
     return content
 
 
-
-get_fox_articles(200, 'politics', '/tmp/fox')
-# print(get_fox_content('https://www.foxnews.com/opinion/joe-concha-media-questioning-politics-mask-guidelines'))
+if __name__ == '__main__':
+    get_fox_articles(50, 'politics', '/Users/Isaacbolo/DataspellProjects/word_analysis_project/data/conservative/fox')
+    # print(get_fox_content('https://www.foxnews.com/opinion/joe-concha-media-questioning-politics-mask-guidelines'))
 
 
 

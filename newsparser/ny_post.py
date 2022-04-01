@@ -32,7 +32,7 @@ def get_ny_post_articles(num_articles, topic, dir_name):
         os.mkdir(full_dir_path)
 
     # Start browser
-    browser = webdriver.Chrome()
+    browser = webdriver.Chrome('/Users/Isaacbolo/chromedriver/chromedriver 3')
     url = f'https://nypost.com/{topic}/'
     browser.get(url)
     time.sleep(2)
@@ -41,6 +41,7 @@ def get_ny_post_articles(num_articles, topic, dir_name):
     try:
         print('Trying to close prompt')
         browser.find_element_by_class_name('pushly_popover-buttons-dismiss.pushly-prompt-buttons-dismiss').click()
+        print('Prompt closed successfully\n')
     except Exception as e:
         print(e)
         print('No prompt to close... Continuing')
@@ -67,19 +68,20 @@ def get_ny_post_articles(num_articles, topic, dir_name):
 
             i += 1
 
-        browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        see_more_button = browser.find_element_by_class_name('button.button--solid.see-more')
+        # browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         try:
-            see_more_button.click()
+            browser.find_element_by_class_name('button.button--solid.see-more').click()
             time.sleep(1)
         except Exception as e:
             print(e)
             print('Unable to click button. There may be an add in the way.')
             try:
                 browser.find_element_by_class_name('bx-close-xsvg').click()
+                browser.find_element_by_class_name('button.button--solid.see-more').click()
             except Exception as e:
                 print(e)
                 print('Unable to click button. Closing browser.')
+                time.sleep(120)
                 browser.close()
                 return
 
@@ -104,4 +106,5 @@ def get_ny_post_content(link):
 
     return content
 
-get_ny_post_articles(200, 'news', '/tmp/nypost')
+if __name__ == '__main__':
+    get_ny_post_articles(500, 'news', '../data/conservative/nypost')

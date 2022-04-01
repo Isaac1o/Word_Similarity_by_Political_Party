@@ -15,7 +15,7 @@ def get_vox_articles(num_articles: int, topic: str, dir_name: str):
         os.mkdir(full_dir_path)
 
     url = f'https://www.vox.com/search?q={topic}&type=Article'
-    browser = webdriver.Chrome()  # initialize selenium Chrome browser object
+    browser = webdriver.Chrome('/Users/Isaacbolo/chromedriver/chromedriver 3')  # initialize selenium Chrome browser object
     time.sleep(2)
     browser.get(url)
 
@@ -59,3 +59,7 @@ def get_vox_content(link):
     content = f'{header} {sub_header} {paragraphs}'
 
     return content
+
+
+if __name__ == '__main__':
+    get_vox_articles(30, 'politics', '../data/liberal/vox')

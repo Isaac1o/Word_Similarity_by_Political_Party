@@ -17,7 +17,7 @@ def get_blaze_articles(num_articles, topic, dir_name):
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--disable-notifications")
     URL = f'https://www.theblaze.com/search/?q={topic}'
-    browser = webdriver.Chrome(options=chrome_options)
+    browser = webdriver.Chrome('/Users/Isaacbolo/chromedriver/chromedriver 3', options=chrome_options)
     browser.get(URL)
     time.sleep(2)
 
@@ -41,16 +41,15 @@ def get_blaze_articles(num_articles, topic, dir_name):
             i += 1
 
         browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        load_button = browser.find_element_by_class_name('btn.button-load-more.next-page-wrapper.action-btn')
+        # load_button = browser.find_element_by_class_name('btn.button-load-more.next-page-wrapper.action-btn')
 
         try:
-            load_button.click()
-            time.sleep(.5)
+            browser.find_element_by_class_name('btn.button-load-more.next-page-wrapper.action-btn').click()
+            time.sleep(2)
         except Exception as e:
             print(e)
             try:
-                popup_exit = browser.find_element_by_id('no-thanks')
-                popup_exit.click()
+                browser.find_element_by_class_name('sailthru-overlay-close').click()
             except Exception as e:
                 print(e)
                 try:
@@ -76,3 +75,7 @@ def get_blaze_content(link):
     content = f'{header} {body}'
 
     return content
+
+
+if __name__ == '__main__':
+    get_blaze_articles(30, 'opinion', '../data/conservative/blaze')

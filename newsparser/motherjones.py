@@ -15,7 +15,7 @@ def get_mother_jones_articles(num_articles, topic, dir_name):
         os.mkdir(full_dir_path)
 
     # Start browser
-    browser = webdriver.Chrome()
+    browser = webdriver.Chrome('/Users/Isaacbolo/chromedriver/chromedriver 3')
     url = f'https://www.motherjones.com/?s={topic}'
     browser.get(url)
 
@@ -23,7 +23,8 @@ def get_mother_jones_articles(num_articles, topic, dir_name):
     while n < num_articles:
         link_containers = browser.find_elements_by_class_name('hed')
         for link_container in link_containers:
-            link = link_container.get_attribute('href')
+            # link = link_container.get_attribute('href')
+            link = link_container.find_element_by_tag_name('a').get_attribute('href')
             try:
                 content = get_mother_jones_content(link)
                 with open(f'{full_dir_path}/article{n}.txt', 'w') as f:
@@ -35,11 +36,18 @@ def get_mother_jones_articles(num_articles, topic, dir_name):
                 print(e)
                 print(f'Unable to read or write {link}')
                 print()
-
-        next_button = browser.find_element_by_class_name('pager_next')
-        next_button.click()
+        try:
+            next_button = browser.find_element_by_class_name('pager_next')
+            next_button.click()
+        except Exception as e:
+            print(e)
+            print('trying to close add')
+            browser.find_element_by_class_name('overlay-ad-aux').find_element_by_class_name('close').click()
+            next_button = browser.find_element_by_class_name('pager_next')
+            next_button.click()
 
     browser.close()
+    print('Done, closing browser')
     time.sleep(2)
 
 
@@ -59,3 +67,7 @@ def get_mother_jones_content(link):
     content = f'{header}\n{body}'
 
     return content
+
+
+if __name__ == '__main__':
+    get_mother_jones_articles(30, 'politics', '../data/liberal/motherjones')

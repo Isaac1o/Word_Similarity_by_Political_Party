@@ -7,6 +7,16 @@ import requests
 
 
 def get_salon_articles(num_articles, topic, dir_name):
+    valid_topics = [
+        'news-and-politics',
+        'culture',
+        'science-and-health'
+    ]
+    topic = topic.lower()
+    # if topic not in valid_topics:
+    #     print('Invalid topic')
+    #     return None
+
     if not os.path.isdir(dir_name):
         os.mkdir(dir_name)
 
@@ -14,23 +24,17 @@ def get_salon_articles(num_articles, topic, dir_name):
     if not os.path.isdir(full_dir_path):
         os.mkdir(full_dir_path)
 
-    # Start browser
-    browser = webdriver.Chrome()
-    page_num = 1
 
+    # Using requests to get links and content
     n = 0
+    page_number = 1
     while n < num_articles:
-        url = f'https://www.salon.com/search/{topic}?pagenum={page_num}'
-        browser.get(url)
-        time.sleep(1)
-        try:
-            link_containers = browser.find_elements_by_class_name('search-title')
-        except Exception as e:
-            print(e)
-            print('No results on this page')
-            break
+        url = f'https://www.salon.com/search/{topic}?pagenum={page_number}'
+        r = requests.get(url)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        link_containers = soup.find_all(class_='search-title')
         for link_container in link_containers:
-            link = link_container.get_attribute('href')
+            link = link_container['href']
             try:
                 content = get_salon_content(link)
                 with open(f'{full_dir_path}/article{n}.txt', 'w') as f:
@@ -43,10 +47,7 @@ def get_salon_articles(num_articles, topic, dir_name):
                 print(f'Unable to write or read {link}')
                 print()
 
-        page_num += 1
-
-    browser.close()
-    time.sleep(2)
+        page_number += 1
 
 
 def get_salon_content(link):
@@ -65,3 +66,7 @@ def get_salon_content(link):
     content = header + ' ' + body.strip()
 
     return content
+
+
+if __name__ == '__main__':
+    get_salon_articles(30, 'politics', '../data/conservative/salon')

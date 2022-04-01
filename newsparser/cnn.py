@@ -1,6 +1,8 @@
 import time
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import os
 from bs4 import BeautifulSoup
 import requests
@@ -12,7 +14,7 @@ def get_cnn_articles(num_articles: int, topic: str, dir_name: str):
         'us',
         'world',
         'business',
-        'opinions',
+        'opinion',
         'health',
         'entertainment',
         'style',
@@ -22,25 +24,34 @@ def get_cnn_articles(num_articles: int, topic: str, dir_name: str):
     if topic not in valid_topics:
         print('Not a valid topic')
         return None
+
     if not os.path.isdir(dir_name):
-        os.mkdir(dir_name)
+        os.makedirs(dir_name)
 
     full_dir_path = f'{dir_name}/{topic}'
     if not os.path.isdir(full_dir_path):
-        os.mkdir(full_dir_path)
+        os.makedirs(full_dir_path)
 
-    browser = webdriver.Chrome()  # initialize selenium Chrome browser object
+    browser = webdriver.Chrome('/Users/Isaacbolo/chromedriver/chromedriver 3')  # initialize selenium Chrome browser object
     time.sleep(3)
     url = f'https://www.cnn.com/search?size=30&q=all&type=article&category={topic}'
     browser.get(url)
 
+    wait = WebDriverWait(browser, 15)
     n = 0
     while n < num_articles:
-        # CNN only displays 50 articles per page. I have to get article links in intervals of 50.
+        # article_container = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'cnn-search__results-list')))
         article_container = browser.find_element_by_class_name('cnn-search__results-list')
+        # articles = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'cnn-search__result-headline')))
         articles = article_container.find_elements_by_class_name('cnn-search__result-headline')
         for article in articles:
-            link = article.find_element_by_tag_name('a').get_attribute('href')
+            try:
+                # link = wait.until(EC.presence_of_element_located((By.TAG_NAME, 'a'))).get_attribute('href')
+                link = article.find_element_by_tag_name('a').get_attribute('href')
+            except Exception as e:
+                print(e)
+                print('Could not get link. Moving to next link')
+                continue
             if 'index.html' in link and '/live-news/' not in link and 'fast-facts' not in link:
                 try:
                     with open(f'{full_dir_path}/article{n}.txt', 'w') as f:
@@ -57,7 +68,7 @@ def get_cnn_articles(num_articles: int, topic: str, dir_name: str):
         next_page_button = browser.find_element_by_class_name('pagination-arrow.pagination-arrow-right.cnnSearchPageLink.text-active')
         try:
             next_page_button.click()
-            time.sleep(1)
+            time.sleep(2)
         except Exception as e:
             print(e)
             print('Unable to go to next page')
@@ -79,4 +90,6 @@ def get_cnn_content(link):
 
     return content
 
-# get_cnn_articles(200, 'business', '/tmp/cnn')
+if __name__ == '__main__':
+# get_cnn_articles(5000, 'business', '/Users/Isaacbolo/DataspellProjects/word_analysis_project/data/liberal/cnn')
+    get_cnn_articles(30, 'politics', '../data/liberal/cnn')
